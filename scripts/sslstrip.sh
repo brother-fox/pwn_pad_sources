@@ -6,14 +6,13 @@ trap f_clean_up KILL
 
 ##################################################
 f_identify_device(){
-
-# Check device
+  # Check device
   hardw=`getprop ro.hardware`
   if [[ "$hardw" == "deb" || "$hardw" == "flo" ]]; then
-    # Set interface for new Pwn Pad
+    # Set interface for Pwn Pad 2
     gsm_int="rmnet_usb0"
   else
-    # Set interface for Pwn Phone and old Pwn Pad
+    # Set interface for Pwn Pad 1, Pwn Pad 3 and Pwn Phone
     gsm_int="rmnet0"
   fi
 }
