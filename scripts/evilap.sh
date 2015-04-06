@@ -7,8 +7,7 @@ trap f_endclean INT
 trap f_endclean KILL
 
 f_identify_device(){
-  
-# Check device
+  # Check device
   hardw=`getprop ro.hardware`
   if [[ "$hardw" == "deb" || "$hardw" == "flo" ]]; then
     # Set interface for Pwn Pad 2
