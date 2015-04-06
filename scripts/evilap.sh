@@ -117,7 +117,7 @@ f_preplaunch(){
   echo "[+] Rolling MAC address and hostname randomly"
   echo
 
-  ifconfig wlan1 down
+  #ifconfig wlan1 down
 
   hn=`ifconfig wlan1 |grep HWaddr |awk '{print$5}' |awk -F":" '{print$1$2$3$4$5$6}'`
   hostname $hn
